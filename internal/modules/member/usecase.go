@@ -24,7 +24,7 @@ func (ob usecase) Authentication(user string, pass string) (*CredentialCombindPr
 		return nil, err
 	} else if member.Id.IsZero() {
 		return nil, errors.New("invalid username or password")
-	} else if member.Password != pass {
+	} else if !ob.hash.CompareBcrypt([]byte(pass), []byte(member.Password)) {
 		return nil, errors.New("invalid username or password")
 	}
 	profile := Profile{

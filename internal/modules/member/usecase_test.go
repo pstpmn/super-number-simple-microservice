@@ -102,11 +102,13 @@ func Test_usecase_Authentication(t *testing.T) {
 
 	// warpper repository
 	jwt := pkg.NewJwt([]byte("test"), 123)
+	hash := pkg.NewHash()
 	memberRepo := NewRepository(conn)
 
 	type fields struct {
 		memberRepo IMemberRepository
 		jwt        pkg.IJwt
+		hash       pkg.IHash
 	}
 	type args struct {
 		user string
@@ -154,6 +156,7 @@ func Test_usecase_Authentication(t *testing.T) {
 			u := usecase{
 				memberRepo: tt.fields.memberRepo,
 				jwt:        jwt,
+				hash:       hash,
 			}
 			_, err := u.Authentication(tt.args.user, tt.args.pass)
 			if (err != nil) != tt.wantErr {
