@@ -22,9 +22,9 @@ func (ob usecase) Authentication(user string, pass string) (*CredentialCombindPr
 	member, err := ob.memberRepo.FindOneByKey("username", user)
 	if err != nil {
 		return nil, err
-	} else if member.Id.IsZero() {
-		return nil, errors.New("invalid username or password")
-	} else if !ob.hash.CompareBcrypt([]byte(pass), []byte(member.Password)) {
+	}
+
+	if member.Id.IsZero() || !ob.hash.CompareBcrypt([]byte(pass), []byte(member.Password)) {
 		return nil, errors.New("invalid username or password")
 	}
 	profile := Profile{
@@ -32,12 +32,13 @@ func (ob usecase) Authentication(user string, pass string) (*CredentialCombindPr
 		FullName:  member.FullName,
 		Username:  member.Username,
 		Email:     member.Email,
-		CreatedAt: time.Time{},
+		CreatedAt: member.CreatedAt,
 	}
-	return &CredentialCombindProfile{&profile, &Credential{
-		AccessToken: ob.jwt.SignToken(profile),
-		CreatedAt:   time.Now(),
-	}}, nil
+	return &CredentialCombindProfile{
+		&profile, &Credential{
+			AccessToken: ob.jwt.SignToken(profile),
+			CreatedAt:   time.Now(),
+		}}, nil
 }
 
 func NewUseCase(memberRepo IMemberRepository, jwt pkg.IJwt, hash pkg.IHash) IUseCase {
