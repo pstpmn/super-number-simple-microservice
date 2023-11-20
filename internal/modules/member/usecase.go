@@ -14,6 +14,7 @@ type (
 	usecase struct {
 		memberRepo IMemberRepository
 		jwt        pkg.IJwt
+		hash       pkg.IHash
 	}
 )
 
@@ -39,10 +40,11 @@ func (ob usecase) Authentication(user string, pass string) (*CredentialCombindPr
 	}}, nil
 }
 
-func NewUseCase(memberRepo IMemberRepository, jwt pkg.IJwt) IUseCase {
+func NewUseCase(memberRepo IMemberRepository, jwt pkg.IJwt, hash pkg.IHash) IUseCase {
 	return usecase{
 		memberRepo: memberRepo,
 		jwt:        jwt,
+		hash:       hash,
 	}
 }
 
@@ -61,7 +63,12 @@ func (u usecase) CreateMember(name string, user string, pass string, email strin
 	}
 
 	// encript password
-	result, err := u.memberRepo.InsertOne(name, user, pass, email)
+	encryptPass, err := u.hash.Bcrypt([]byte(pass))
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := u.memberRepo.InsertOne(name, user, encryptPass, email)
 	if err != nil {
 		return nil, err
 	}

@@ -15,6 +15,7 @@ func Test_usecase_CreateMember(t *testing.T) {
 	conn := mongo.Conn(context.Background(), &cfg)
 
 	// warpper repository
+	hash := pkg.NewHash()
 	memberRepo := NewRepository(conn)
 
 	type args struct {
@@ -77,6 +78,8 @@ func Test_usecase_CreateMember(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			u := usecase{
 				memberRepo: memberRepo,
+				jwt:        nil,
+				hash:       hash,
 			}
 			_, err := u.CreateMember(tt.args.name, tt.args.user, tt.args.pass, tt.args.email)
 			if (err != nil) != tt.wantErr {
