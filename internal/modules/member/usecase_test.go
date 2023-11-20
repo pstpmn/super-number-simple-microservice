@@ -27,7 +27,7 @@ func Test_usecase_CreateMember(t *testing.T) {
 		name    string
 		u       usecase
 		args    args
-		want    *MemberProfile
+		want    *Profile
 		wantErr bool
 	}{
 		{
@@ -41,7 +41,7 @@ func Test_usecase_CreateMember(t *testing.T) {
 				pass:  "test",
 				email: "test@test.com",
 			},
-			want:    &MemberProfile{},
+			want:    &Profile{},
 			wantErr: false,
 		},
 		{
@@ -55,7 +55,7 @@ func Test_usecase_CreateMember(t *testing.T) {
 				pass:  "test",
 				email: "test@test.com",
 			},
-			want:    &MemberProfile{},
+			want:    &Profile{},
 			wantErr: true,
 		},
 		{
@@ -69,7 +69,7 @@ func Test_usecase_CreateMember(t *testing.T) {
 				pass:  "test",
 				email: "notDuplicate@test.com",
 			},
-			want:    &MemberProfile{},
+			want:    &Profile{},
 			wantErr: true,
 		},
 	}
@@ -85,6 +85,80 @@ func Test_usecase_CreateMember(t *testing.T) {
 			}
 			// if !reflect.DeepEqual(got, tt.want) {
 			// 	t.Errorf("usecase.CreateMember() = %v, want %v", got, tt.want)
+			// }
+		})
+	}
+}
+
+func Test_usecase_Authentication(t *testing.T) {
+	// connect mongo
+	mongo := pkg.NewMongo()
+	uri := "mongodb://root:root@0.0.0.0:27017"
+	cfg := configs.NewMongo(uri)
+	conn := mongo.Conn(context.Background(), &cfg)
+
+	// warpper repository
+	jwt := pkg.NewJwt([]byte("test"), 123)
+	memberRepo := NewRepository(conn)
+
+	type fields struct {
+		memberRepo IMemberRepository
+		jwt        pkg.IJwt
+	}
+	type args struct {
+		user string
+		pass string
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    *CredentialCombindProfile
+		wantErr bool
+	}{
+		// TODO: Add test cases.
+		{
+			name: "should be success",
+			fields: fields{
+				memberRepo: memberRepo,
+			},
+			args: args{
+				user: "test",
+				pass: "test",
+			},
+			// want: &CredentialCombindProfile{
+			// 	Profile:    &Profile{},
+			// 	Credential: &Credential{},
+			// },
+			wantErr: false,
+		},
+		{
+			name: "should be error invalid username or password",
+			fields: fields{
+				memberRepo: memberRepo,
+				jwt:        jwt,
+			},
+			args: args{
+				user: "test",
+				pass: "test1",
+			},
+			// want:    &CredentialCombindProfile{},
+			wantErr: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u := usecase{
+				memberRepo: tt.fields.memberRepo,
+				jwt:        jwt,
+			}
+			_, err := u.Authentication(tt.args.user, tt.args.pass)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("usecase.Authentication() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			// if !reflect.DeepEqual(got, tt.want) {
+			// 	t.Errorf("usecase.Authentication() = %v, want %v", got, tt.want)
 			// }
 		})
 	}

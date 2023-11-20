@@ -5,11 +5,10 @@ go 1.20
 require (
 	github.com/labstack/echo/v4 v4.11.3
 	go.mongodb.org/mongo-driver v1.13.0
-	honnef.co/go/tools v0.4.6
 )
 
 require (
-	github.com/BurntSushi/toml v1.2.1 // indirect
+	github.com/golang-jwt/jwt/v5 v5.1.0
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/labstack/gommon v0.4.0 // indirect
@@ -27,5 +26,4 @@ require (
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
-	golang.org/x/tools v0.12.1-0.20230825192346-2191a27a6dc5 // indirect
 )

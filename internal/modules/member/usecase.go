@@ -2,27 +2,52 @@ package member
 
 import (
 	"errors"
+	"super-number-simple-microservice/pkg"
 	"time"
 )
 
 type (
 	IUseCase interface {
-		CreateMember(name, user, pass, email string) (*MemberProfile, error)
+		CreateMember(name, user, pass, email string) (*Profile, error)
+		Authentication(user, pass string) (*CredentialCombindProfile, error)
 	}
-
 	usecase struct {
 		memberRepo IMemberRepository
+		jwt        pkg.IJwt
 	}
 )
 
-func NewUseCase(memberRepo IMemberRepository) IUseCase {
+func (ob usecase) Authentication(user string, pass string) (*CredentialCombindProfile, error) {
+	member, err := ob.memberRepo.FindOneByKey("username", user)
+	if err != nil {
+		return nil, err
+	} else if member.Id.IsZero() {
+		return nil, errors.New("invalid username or password")
+	} else if member.Password != pass {
+		return nil, errors.New("invalid username or password")
+	}
+	profile := Profile{
+		Id:        member.Id.Hex(),
+		FullName:  member.FullName,
+		Username:  member.Username,
+		Email:     member.Email,
+		CreatedAt: time.Time{},
+	}
+	return &CredentialCombindProfile{&profile, &Credential{
+		AccessToken: ob.jwt.SignToken(profile),
+		CreatedAt:   time.Now(),
+	}}, nil
+}
+
+func NewUseCase(memberRepo IMemberRepository, jwt pkg.IJwt) IUseCase {
 	return usecase{
 		memberRepo: memberRepo,
+		jwt:        jwt,
 	}
 }
 
 // CreateMember implements IUseCase.
-func (u usecase) CreateMember(name string, user string, pass string, email string) (*MemberProfile, error) {
+func (u usecase) CreateMember(name string, user string, pass string, email string) (*Profile, error) {
 	// validate duplicate
 	if validEmail, err := u.memberRepo.FindOneByKey("email", email); err != nil {
 		return nil, err
@@ -35,11 +60,12 @@ func (u usecase) CreateMember(name string, user string, pass string, email strin
 		return nil, errors.New("username is duplicated")
 	}
 
+	// encript password
 	result, err := u.memberRepo.InsertOne(name, user, pass, email)
 	if err != nil {
 		return nil, err
 	}
-	return &MemberProfile{
+	return &Profile{
 		Id:        result.Hex(),
 		FullName:  name,
 		Username:  user,
